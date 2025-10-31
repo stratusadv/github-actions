@@ -20,6 +20,11 @@ inputs:
     required: false
     default: '2'
 
+  check-migrations:
+    description: 'Check for missing migrations'
+    required: false
+    default: 'true'
+
 runs:
   using: 'composite'
   steps:
@@ -46,6 +51,7 @@ runs:
       shell: bash
 
     - name: Check for missing migrations
+      if: inputs.check-migrations == 'true'
       run: uv run python manage.py makemigrations --check --settings=${{ inputs.settings-module }}
       shell: bash
 
