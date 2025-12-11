@@ -103,3 +103,4 @@ runs:
       shell: bash
       env:
         DJANGO_SETTINGS_MODULE: ${{ inputs.settings-module }}
+        PYTHONPATH: .
