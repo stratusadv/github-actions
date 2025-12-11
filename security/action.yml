@@ -45,10 +45,9 @@ runs:
       shell: bash
 
     - name: Install Trivy
-      run: |
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh
-        sudo mv ./bin/trivy /usr/local/bin/trivy
-      shell: bash
+      uses: aquasecurity/setup-trivy@v0.2.4
+      with:
+        version: latest
 
     - name: Run Trivy
       run: trivy fs . --severity LOW,MEDIUM,HIGH,CRITICAL --format table | tee trivy_report.txt
