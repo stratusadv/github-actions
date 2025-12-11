@@ -30,6 +30,21 @@ inputs:
     required: false
     default: 'manage.py'
 
+  test-runner:
+    description: 'The test runner to use (unittest or pytest)'
+    required: false
+    default: 'unittest'
+
+  test-paths:
+    description: 'Space-separated paths to test (pytest only)'
+    required: false
+    default: ''
+
+  test-ignore:
+    description: 'Space-separated paths to ignore (pytest only)'
+    required: false
+    default: ''
+
 runs:
   using: 'composite'
   steps:
@@ -64,6 +79,27 @@ runs:
       run: uv run python ${{ inputs.manage-py-path }} migrate --settings=${{ inputs.settings-module }} --noinput
       shell: bash
 
-    - name: Run tests
+    - name: Run tests (unittest)
+      if: inputs.test-runner == 'unittest'
       run: uv run python ${{ inputs.manage-py-path }} test --settings=${{ inputs.settings-module }} --noinput --verbosity=${{ inputs.test-verbosity }}
       shell: bash
+
+    - name: Run tests (pytest)
+      if: inputs.test-runner == 'pytest'
+      run: |
+        PYTEST_ARGS="-v"
+
+        if [ "${{ inputs.test-verbosity }}" -ge 2 ]; then
+          PYTEST_ARGS="$PYTEST_ARGS -v"
+        fi
+
+        if [ -n "${{ inputs.test-ignore }}" ]; then
+          for path in ${{ inputs.test-ignore }}; do
+            PYTEST_ARGS="$PYTEST_ARGS --ignore=$path"
+          done
+        fi
+
+        uv run pytest $PYTEST_ARGS ${{ inputs.test-paths }}
+      shell: bash
+      env:
+        DJANGO_SETTINGS_MODULE: ${{ inputs.settings-module }}
