@@ -45,9 +45,7 @@ runs:
       shell: bash
 
     - name: Install Trivy
-      uses: aquasecurity/setup-trivy@v0.2.4
-      with:
-        version: latest
+      uses: aquasecurity/setup-trivy@v0.2.3
 
     - name: Run Trivy
       run: trivy fs . --severity LOW,MEDIUM,HIGH,CRITICAL --format table | tee trivy_report.txt

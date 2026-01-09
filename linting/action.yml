@@ -27,6 +27,19 @@ runs:
       run: uv tool install ruff
       shell: bash
 
+    - name: Check lock file
+      run: |
+        echo "Checking if uv.lock is up-to-date..."
+        if ! uv lock --check; then
+          echo "::error::uv.lock is out of sync with pyproject.toml. Run 'uv lock' to update."
+          echo "IS_CRITICAL_ERROR=true" >> $GITHUB_ENV
+          echo "LOCK_FILE_ERROR=true" >> $GITHUB_ENV
+        else
+          echo "Lock file is up-to-date."
+          echo "LOCK_FILE_ERROR=false" >> $GITHUB_ENV
+        fi
+      shell: bash
+
     - name: Build exclude pattern
       id: exclude
       run: |
@@ -124,6 +137,7 @@ runs:
       if: always()
       run: |
         echo "[Linting Report]"
+        echo "Lock file out of sync: ${{ env.LOCK_FILE_ERROR }}"
         echo "Critical error(s): ${{ env.CRITICAL_ERROR_COUNT }}"
         echo "Debugger statement(s): ${{ env.DEBUGGER_COUNT }}"
         echo "Unused import(s): ${{ env.UNUSED_IMPORT_COUNT }}"
