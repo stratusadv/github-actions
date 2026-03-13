@@ -1,0 +1,130 @@
+name: 'AI Code Review'
+description: 'An action to perform AI-powered code review on pull requests.'
+
+inputs:
+  python-version:
+    description: 'The Python version to use'
+    required: true
+
+  ai-api-host:
+    description: 'The AI API host'
+    required: true
+
+  ai-api-key:
+    description: 'The AI API key'
+    required: true
+
+  ai-api-model:
+    description: 'The AI API model'
+    required: true
+
+  dandy-settings-module:
+    description: 'The dandy settings module'
+    required: true
+
+  opencode-module:
+    description: 'The Python module path for the opencode package containing standards'
+    required: true
+
+  config-module:
+    description: 'An optional Python module path that calls ai_code_review.register() to override defaults'
+    required: false
+    default: ''
+
+  sync-extras:
+    description: 'Extra dependency groups to sync'
+    required: false
+    default: ''
+
+  review-backend:
+    description: 'Enable backend review'
+    required: false
+    default: 'true'
+
+  review-frontend:
+    description: 'Enable frontend review'
+    required: false
+    default: 'true'
+
+  consensus-runs:
+    description: 'The number of consensus runs'
+    required: false
+    default: '3'
+
+  consensus-threshold:
+    description: 'The minimum agreement count for a comment'
+    required: false
+    default: '1'
+
+  max-diff-length:
+    description: 'The maximum diff length before truncation'
+    required: false
+    default: '60000'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "latest"
+
+    - name: Setup Python
+      run: uv python install ${{ inputs.python-version }}
+      shell: bash
+
+    - name: Install dependencies
+      run: |
+        if [ -n "${{ inputs.sync-extras }}" ]; then
+          EXTRAS=""
+          for extra in ${{ inputs.sync-extras }}; do
+            EXTRAS="$EXTRAS --extra $extra"
+          done
+          uv sync $EXTRAS
+        else
+          uv sync
+        fi
+
+        uv pip install ruff unidiff
+      shell: bash
+
+    - name: Determine PR number
+      id: pr
+      run: |
+        if [ -n "${{ github.event.pull_request.number }}" ]; then
+          echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+        else
+          echo "::error::Could not determine PR number."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Fetch PR diff
+      id: diff
+      run: |
+        gh pr diff ${{ steps.pr.outputs.number }} > pr_diff.patch
+        echo "has_diff=true" >> $GITHUB_OUTPUT
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Run AI review
+      if: steps.diff.outputs.has_diff == 'true'
+      run: uv run python -m ai_code_review.main
+      shell: bash
+      env:
+        AI_API_HOST: ${{ inputs.ai-api-host }}
+        AI_API_KEY: ${{ inputs.ai-api-key }}
+        AI_API_MODEL: ${{ inputs.ai-api-model }}
+        AI_REVIEW_BACKEND: ${{ inputs.review-backend }}
+        AI_REVIEW_CONFIG_MODULE: ${{ inputs.config-module }}
+        AI_REVIEW_CONSENSUS_RUNS: ${{ inputs.consensus-runs }}
+        AI_REVIEW_CONSENSUS_THRESHOLD: ${{ inputs.consensus-threshold }}
+        AI_REVIEW_FRONTEND: ${{ inputs.review-frontend }}
+        AI_REVIEW_MAX_DIFF_LENGTH: ${{ inputs.max-diff-length }}
+        AI_REVIEW_OPENCODE_MODULE: ${{ inputs.opencode-module }}
+        DANDY_SETTINGS_MODULE: ${{ inputs.dandy-settings-module }}
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ steps.pr.outputs.number }}
+        PYTHONPATH: ${{ github.action_path }}:${{ github.workspace }}
+        REPO_FULL_NAME: ${{ github.repository }}
