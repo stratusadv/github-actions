@@ -85,7 +85,7 @@ runs:
           uv sync
         fi
 
-        uv pip install ruff unidiff
+        uv pip install dandy ruff unidiff
       shell: bash
 
     - name: Determine PR number
