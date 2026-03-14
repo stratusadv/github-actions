@@ -36,7 +36,9 @@ class RuffLinter:
     def run(self) -> list[dict]:
         existing = [
             path for path in self.diffs.paths
-            if path.endswith('.py') and Path(path).is_file()
+            if path.endswith('.py')
+            and '/migrations/' not in path
+            and Path(path).is_file()
         ]
 
         if not existing:

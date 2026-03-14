@@ -61,7 +61,7 @@ class ReviewOrchestrator:
             else:
                 return comments_from_intel(
                     intel,
-                    self.diffs.line_map,
+                    self.diffs.added,
                     config.prefix,
                 )
 
