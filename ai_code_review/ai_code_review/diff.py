@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from unidiff import PatchSet
 
@@ -66,6 +67,22 @@ class DiffSet:
             path.endswith(extensions)
             for path in self.files
         )
+
+    def read_files(self, extensions: tuple[str, ...]) -> dict[str, str]:
+        contents: dict[str, str] = {}
+
+        for path in sorted(self.files):
+            if not path.endswith(extensions):
+                continue
+
+            file = Path(path)
+
+            if not file.is_file():
+                continue
+
+            contents[path] = file.read_text(encoding='utf-8')
+
+        return contents
 
     @classmethod
     def from_patch(cls, text: str) -> DiffSet:

@@ -9,6 +9,7 @@ class _CodeReviewBot(Bot):
     def process(
         self,
         diff: str,
+        sources: dict[str, str],
         standard: Prompt,
     ) -> CodeReviewIntel:
         prompt = Prompt()
@@ -16,6 +17,15 @@ class _CodeReviewBot(Bot):
         if standard.snippets:
             prompt.prompt(standard)
             prompt.lb()
+
+        if sources:
+            prompt.heading('Source Files')
+            prompt.lb()
+
+            for path, content in sources.items():
+                prompt.sub_heading(path)
+                prompt.text(content, triple_backtick=True)
+                prompt.lb()
 
         prompt.heading('Pull Request Diff')
         prompt.text(diff, triple_backtick=True)
@@ -57,10 +67,10 @@ class BackendReviewBot(_CodeReviewBot):
         .sub_heading('Comment Format')
         .text(
             'Every comment must follow this exact structure:'
-            '1. State what is wrong.'
-            '2. Cite the violated standard.'
-            '3. Show what the fix looks like.'
-            '4. If referencing another file, end with: See `path/to/file`.'
+            '\n1. State what is wrong.'
+            '\n2. Cite the violated standard.'
+            '\n3. Show what the fix looks like.'
+            '\n4. If referencing another file, end with: See `path/to/file`.'
         )
     )
     role = 'Senior Django Developer'
@@ -105,10 +115,10 @@ class FrontendReviewBot(_CodeReviewBot):
         .sub_heading('Comment Format')
         .text(
             'Every comment must follow this exact structure:'
-            '1. State what is wrong.'
-            '2. Cite the violated standard.'
-            '3. Show what the fix looks like.'
-            '4. If referencing another file, end with: See `path/to/file`.'
+            '\n1. State what is wrong.'
+            '\n2. Cite the violated standard.'
+            '\n3. Show what the fix looks like.'
+            '\n4. If referencing another file, end with: See `path/to/file`.'
         )
     )
     role = 'Senior Frontend Developer'

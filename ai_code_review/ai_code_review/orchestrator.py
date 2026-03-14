@@ -37,6 +37,8 @@ class ReviewOrchestrator:
         if not filtered.strip():
             return []
 
+        sources = self.diffs.read_files(config.extensions)
+
         standard = config.strategy.load(config.skills)
 
         instruction = load_instruction_prompt(self.review_dir)
@@ -53,6 +55,7 @@ class ReviewOrchestrator:
 
                 intel = bot.process(
                     diff=filtered,
+                    sources=sources,
                     standard=standard,
                 )
             except Exception:
