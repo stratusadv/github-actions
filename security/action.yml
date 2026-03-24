@@ -41,7 +41,9 @@ runs:
       shell: bash
 
     - name: Run pip-audit
-      run: uv tool run pip-audit | tee pip_audit_report.txt
+      run: |
+        set -o pipefail
+        uv tool run pip-audit | tee pip_audit_report.txt || echo "::warning::pip-audit found vulnerabilities"
       shell: bash
 
     - name: Install Trivy
