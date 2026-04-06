@@ -11,6 +11,16 @@ inputs:
     required: false
     default: ''
 
+  template-lint:
+    description: 'Enable Django template linting'
+    required: false
+    default: 'true'
+
+  template-lint-extras:
+    description: 'Extras to install for template linting'
+    required: false
+    default: 'production'
+
 runs:
   using: 'composite'
   steps:
@@ -132,6 +142,13 @@ runs:
           echo "CONSOLE_LOG_COUNT=0" >> $GITHUB_ENV
         fi
       shell: bash
+
+    - name: Lint Django templates
+      if: inputs.template-lint == 'true'
+      uses: braycarlson/resolve-lint-action@v1
+      with:
+        python-version: ${{ inputs.python-version }}
+        dependency-extras: ${{ inputs.template-lint-extras }}
 
     - name: Linting report
       if: always()
