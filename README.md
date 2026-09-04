@@ -14,7 +14,7 @@ A collection of shared, reusable GitHub Actions for CI/CD pipelines.
 We should reference actions in our workflow files using the repository path and version tag:
 
 ```yaml
-- uses: stratusadv/github-actions/<action_name>@v1
+- uses: stratusadv/github-actions/<action_name>@v2
 ```
 
 Each action's available inputs are documented in its `action.yml` file.
@@ -39,8 +39,8 @@ jobs:
     name: Linting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: stratusadv/github-actions/linting@v1
+      - uses: actions/checkout@v7
+      - uses: stratusadv/github-actions/linting@v2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -53,10 +53,10 @@ jobs:
       pull-requests: write
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: stratusadv/github-actions/ai_code_review@v1
+      - uses: stratusadv/github-actions/ai_code_review@v2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           ai-api-host: ${{ secrets.AI_API_HOST }}
@@ -64,7 +64,6 @@ jobs:
           ai-api-model: ${{ secrets.AI_API_MODEL }}
           dandy-settings-module: dandy_settings
           opencode-module: my_project.opencode_pkg
-          sync-extras: development production
 
   tests:
     name: Tests
@@ -72,8 +71,8 @@ jobs:
     needs: linting
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
-      - uses: stratusadv/github-actions/tests@v1
+      - uses: actions/checkout@v7
+      - uses: stratusadv/github-actions/tests@v2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           settings-module: system.testing.settings
@@ -84,19 +83,19 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: stratusadv/github-actions/security@v1
+      - uses: actions/checkout@v7
+      - uses: stratusadv/github-actions/security@v2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 ```
 
 ## Releasing Changes
 
-The actions are pinned by consumers using a major version tag (e.g., `@v1`). After merging changes to `main`, move the tag forward:
+The actions are pinned by consumers using a major version tag (e.g., `@v2`). After merging changes to `main`, move the tag forward:
 
 ```
-git tag -f v1
-git push origin -f v1
+git tag -f v2
+git push origin -f v2
 ```
 
 This is safe for additive changes such as new actions, new optional inputs, or bug fixes within existing actions.
@@ -106,8 +105,8 @@ This is safe for additive changes such as new actions, new optional inputs, or b
 If a change would break existing consumers such as removing inputs, renaming actions, changing required behavior, then release a new major version instead:
 
 ```
-git tag v2
-git push origin v2
+git tag v3
+git push origin v3
 ```
 
-and then update client projects to reference `@v2` as needed.
+and then update client projects to reference `@v3` as needed.

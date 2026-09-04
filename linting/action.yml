@@ -17,15 +17,15 @@ inputs:
     default: 'true'
 
   template-lint-extras:
-    description: 'Extras to install for template linting'
+    description: 'Comma-separated extras to install for template linting'
     required: false
-    default: 'production'
+    default: ''
 
 runs:
   using: 'composite'
   steps:
     - name: Install uv
-      uses: astral-sh/setup-uv@v6
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       with:
         version: "latest"
 

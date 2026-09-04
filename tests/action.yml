@@ -11,9 +11,14 @@ inputs:
     required: true
 
   sync-extras:
-    description: 'The extra dependencies to sync'
+    description: 'Space-separated extras to sync'
     required: false
-    default: 'development production'
+    default: ''
+
+  sync-groups:
+    description: 'Space-separated dependency groups to sync in addition to the defaults'
+    required: false
+    default: ''
 
   test-verbosity:
     description: 'The verbosity level'
@@ -49,7 +54,7 @@ runs:
   using: 'composite'
   steps:
     - name: Install uv
-      uses: astral-sh/setup-uv@v6
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       with:
         version: "latest"
 
@@ -59,16 +64,21 @@ runs:
 
     - name: Install dependencies
       run: |
-        if [ -n "${{ inputs.sync-extras }}" ]; then
-          for extra in ${{ inputs.sync-extras }}; do
-            EXTRAS="$EXTRAS --extra $extra"
-          done
+        ARGS=""
 
-          uv sync $EXTRAS
-        else
-          uv sync
-        fi
+        for group in $SYNC_GROUPS; do
+          ARGS="$ARGS --group $group"
+        done
+
+        for extra in $SYNC_EXTRAS; do
+          ARGS="$ARGS --extra $extra"
+        done
+
+        uv sync $ARGS
       shell: bash
+      env:
+        SYNC_EXTRAS: ${{ inputs.sync-extras }}
+        SYNC_GROUPS: ${{ inputs.sync-groups }}
 
     - name: Check for missing migrations
       if: inputs.check-migrations == 'true'
