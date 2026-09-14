@@ -114,7 +114,7 @@ runs:
 
     - name: Check for print statement(s)
       run: |
-        FOUND=$(uv tool run ruff check --select=T201,T203 --exclude=${{ steps.exclude.outputs.pattern }} --exit-zero .)
+        FOUND=$(uv tool run ruff check --select=T201,T203 --extend-per-file-ignores "seed.py:T201,T203" --exclude=${{ steps.exclude.outputs.pattern }} --exit-zero .)
         COUNT=$(echo "$FOUND" | grep -oP "Found \K\d+(?= error)" || echo "0")
 
         if [ "$COUNT" -gt 0 ]; then
