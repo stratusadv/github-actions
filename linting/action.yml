@@ -68,12 +68,11 @@ runs:
     - name: Check for critical error(s)
       run: |
         echo "Checking for undefined name(s) and critical error(s)..."
-        FOUND=$(uv tool run ruff check --select=F821,F822,F823 --exclude=${{ steps.exclude.outputs.pattern }} --exit-zero .)
+        FOUND=$(uv tool run ruff check --select=F821,F822,F823 --exclude=${{ steps.exclude.outputs.pattern }} --exit-zero . | tee "$RUNNER_TEMP/critical-errors.txt")
         COUNT=$(echo "$FOUND" | grep -oP "Found \K\d+(?= error)" || echo "0")
 
         if [ "$COUNT" -gt 0 ]; then
           echo "::error::Critical error(s) found:"
-          echo "$FOUND"
           echo "IS_CRITICAL_ERROR=true" >> $GITHUB_ENV
           echo "CRITICAL_ERROR_COUNT=$COUNT" >> $GITHUB_ENV
         else
@@ -160,6 +159,12 @@ runs:
         echo "Unused import(s): ${{ env.UNUSED_IMPORT_COUNT }}"
         echo "print statement(s): ${{ env.PRINT_STATEMENT_COUNT }}"
         echo "console.log statement(s): ${{ env.CONSOLE_LOG_COUNT }}"
+
+        if [ "${{ env.CRITICAL_ERROR_COUNT }}" != "0" ] && [ -s "$RUNNER_TEMP/critical-errors.txt" ]; then
+          echo ""
+          echo "Critical error(s) found:"
+          cat "$RUNNER_TEMP/critical-errors.txt"
+        fi
 
         if [ "${{ env.IS_CRITICAL_ERROR }}" == "true" ]; then
           echo "::error::Pipeline failed due to critical error(s) found above"
